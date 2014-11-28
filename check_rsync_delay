@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# Author: Sharad Kumar Chhetri
+# Version : 1.0
+# Date : 1-Feb-2014
+# Description : check_rsync_delay checks if rsync process keep running for more than 2 hours.
+# On keep running for 90 minutes it will send critical alert.
+# Blog: http://sharadchhetri.com
+#
+
+CHECK=`which rsync`
+PIDTIME=`ps -e -o lstart,pid,cmd|grep $CHECK|sort|head -1|grep -v grep|awk '{print $1,$2,$3,$4,$5}'`
+PIDBLANK=`echo $PIDTIME|wc -w`
+CURRENT_S=`date +%s -d "now"`
+PIDTIME_S=`date +%s -d "$PIDTIME"`
+
+echo $PIDTIME_S
+echo $CURRENT_S
+
+DIFF=`expr $CURRENT_S - $PIDTIME_S`
+
+echo $DIFF
+
+if [ "$PIDBLANK" -eq  '0' ]
+then
+echo "OK: rsync process is not initiated"
+exit 0
+else
+if [ "$DIFF" -ge '7200' ]
+then
+echo "CRITICAL : rsync runing more than 2 hours, PID No. $PIDS"
+exit 2
+else
+if [ "$DIFF" -ge '5400' ]
+then
+echo "Warning: rsync running more than 90 minutes, PID No. $PIDS"
+exit 1
+else
+if [ "$DIFF" -le '5399' ]
+then
+echo "OK: rsync running,Time Taken(s): $PIDS ,  PID No. $PIDS"
+exit 0
+fi
+fi
+fi
+fi
