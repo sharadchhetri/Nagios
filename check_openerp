@@ -1,0 +1,22 @@
+#!/bin/bash
+ 
+#Author Sharad Kumar Chhetri
+#script is used for checking OpenERP Server status
+# Date : 02-July-2013
+# Version : 1.0
+# Description : The nagios plugin checks the running openerp-server process.Simple nagios plugin for beginners
+# Blog : http://sharadchhetri.com/2013/07/03/check_openerp-nagios-plugin-for-openerp-service-check/
+
+ 
+oes=`ps -ef|grep openerp-server|grep -v grep|wc -l`
+if [ "$oes" == 1 ]
+then
+echo "OK: OpenERP Server is running"
+exit 0
+else
+if [ "$oes" == 0 ]
+then
+echo "CRIT: OpenERP Server is not running"
+exit 2
+fi
+fi
