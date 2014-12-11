@@ -1,0 +1,77 @@
+#!/bin/bash
+## Author: Sharad Kumar Chhetri
+## Creation Date : 10-Dec-2014
+## Description : Send Warning/Critical alert before expiry date of SSL Certificate.
+## Version : 1.0
+##
+## Usage example: /check_ssl_cert_expiry -h www.google.co.in -w 90 -c 60
+## -w = integer number (Warning days)
+## -c = integer number (Critical days)
+#
+# Requirement : bc command should be available in system.
+#
+
+_HOST=""
+_WARNEXPIRYDAYS=""
+_CRITEXPIRYDAYS=""
+
+while getopts "h:w:c:" opt
+do
+case $opt in
+h ) _HOST=$OPTARG;;
+w ) _WARNEXPIRYDAYS=$OPTARG;;
+c ) _CRITEXPIRYDAYS=$OPTARG;;
+esac
+done
+
+if [ ! "$_HOST" ]
+then
+printf "ERROR - Either give Hostname in syntax as www.example.com or example.com with -h!\n"
+exit 3
+fi
+if [ ! "$_WARNEXPIRYDAYS" ]
+then
+printf "ERROR - Add WARNING expiry in days with -w\n"
+exit 3
+fi
+if [ ! "$_CRITEXPIRYDAYS" ]
+then
+printf "ERROR - Add CRITICAL expiry in days with -c\n"
+exit 3
+fi
+
+EXPIRYDATE=`echo "QUIT" | openssl s_client -connect $_HOST:443 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null|sed 's/notAfter=//g'`
+#echo $EXPIRYDATE
+
+EXPIRYDATE_epoch=$(date --date "$EXPIRYDATE" +%s)
+
+CURRENT_DATE_epoch=`date +%s`
+
+#echo $EXPIRYDATE_epoch
+#echo $CURRENT_DATE_epoch
+#echo $dayDiff
+
+epochDiff=`echo "$EXPIRYDATE_epoch" - "$CURRENT_DATE_epoch"|bc`
+#echo $epochDiff
+
+### Get difference of days
+dayDiff=`echo "$epochDiff"/86400|bc`
+#echo $dayDiff
+
+if [ "$dayDiff" -le "$_CRITEXPIRYDAYS" ]
+then
+echo "CRITICAL : $dayDiff days are left for SSL Certificate Expiration on Host $_HOST"
+exit 2
+else
+if [  "$dayDiff" -le "$_WARNEXPIRYDAYS" ]
+then
+echo  "WARNING : $dayDiff days are left for SSL Certificate Expiration on Host $_HOST"
+exit 1
+else
+if [ "$dayDiff" -gt "$_WARNEXPIRYDAYS" ]
+then
+echo "OK: $dayDiff days are left for SSL Certificate Expiration on Host $_HOST"
+exit 0
+fi
+fi
+fi
