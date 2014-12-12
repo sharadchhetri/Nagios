@@ -35,7 +35,7 @@ exit 0
 else
 if [ "$ELB_INSTANCE_COUNT" != "$INSTANCE_COUNT" ]
 then
-echo "CRIT: Number of instances in ELB $ELB_NAME do not matches with desired value"
+echo "CRIT: Number of instances in ELB $ELB_NAME is $ELB_INSTANCE_COUNT,which do'nt matches with desired value i.e $INSTANCE_COUNT"
 exit 2
 fi
 fi
