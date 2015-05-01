@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Author : Sharad Kumar Chhetri
+# Date Of Creation : 23-April-2015
+# Version  : 1.0
+# Description : It check the cassandra node status with help of nodetool utility
+# Requirement : The nagios plugin should be used in Cassandra nodes where cassandra is already installed.
+# NOTE : if you have installed Cassandra from source code, give absolute path in variable called _NODETOOL 
+# 
+# BLOG : http://sharadchhetri.com
+# 
+#
+
+_NODETOOL=$(which nodetool)
+NODESTATUS=$($_NODETOOL status 2>&1 |awk '{print $1}')
+
+if [ "$NODESTATUS" == "Failed" ]
+then
+ERR=$($_NODETOOL status 2>&1)
+echo "CRIT : $ERR "
+exit 2
+else
+
+if [ "$NODESTATUS" != "Failed" ]
+then
+RACKINFO=$($_NODETOOL info|grep Rack|awk '{print $3}')
+DCINFO=$($_NODETOOL info|grep 'Data Center'|awk '{print $4}')
+echo "OK : cassandra is running ,Data Center: $DCINFO , Rack : $RACKINFO"
+exit 0
+fi
+fi
